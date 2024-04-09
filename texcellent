@@ -1,0 +1,74 @@
+#!/bin/zsh
+##########################################################################################
+# 
+# ████████╗███████╗██╗  ██╗ ██████╗███████╗██╗     ██╗     ███████╗███╗   ██╗████████╗
+# ╚══██╔══╝██╔════╝╚██╗██╔╝██╔════╝██╔════╝██║     ██║     ██╔════╝████╗  ██║╚══██╔══╝
+#   ██║   █████╗   ╚███╔╝ ██║     █████╗  ██║     ██║     █████╗  ██╔██╗ ██║   ██║   
+#   ██║   ██╔══╝   ██╔██╗ ██║     ██╔══╝  ██║     ██║     ██╔══╝  ██║╚██╗██║   ██║   
+#   ██║   ███████╗██╔╝ ██╗╚██████╗███████╗███████╗███████╗███████╗██║ ╚████║   ██║   
+#   ╚═╝   ╚══════╝╚═╝  ╚═╝ ╚═════╝╚══════╝╚══════╝╚══════╝╚══════╝╚═╝  ╚═══╝   ╚═╝   
+#
+##########################################################################################
+#
+# TEXcellent is a custom program containing;
+# - A CLI for creating new LaTeX projects from custom templates
+# - Defining custom macros
+#
+
+usage_help () {
+    echo "
+-- TEXcellent -- v0.1 -- 
+    
+Usage: 
+
+    No flags: Creates a directory with a latex document with a basic template
+    
+    texcellent                          will show the same as -h. Arguments are required
+    texcellent -h                       shows this this info
+    texcellent -o <file>                creates and opens (w/ vim) a latex project folder           (basic template)
+    texcellent -c <file>                counts words in said file
+
+For further info see..."
+}
+
+if [[ $# -eq 0 ]]; then
+    #echo "Error: no options provided" >&2
+    usage_help
+    exit 1
+fi
+
+while getopts ":ht:o:c:" opt; do
+    case $opt in
+        h)
+            usage_help
+            break
+            ;;
+        t)
+            echo Testing $OPTARG
+            shift
+            ;;
+        o)
+            filename="$OPTARG.tex"
+            template="basic.tex"
+            echo Creating $filename
+            mkdir $OPTARG
+            cd $OPTARG
+            touch $filename
+            cat "$TEXCELLENT_DIR/templates/$template" >> "./$filename"
+            vim $filename
+            break
+            ;;
+        c)
+            echo -n Wordcount: 
+            detex $OPTARG | wc -w | xargs
+            break
+            ;;
+        \?)
+            echo Invalid option: -$OPTARG >&2
+            ;;
+    esac
+done
+
+#echo arg1 $1
+
+
