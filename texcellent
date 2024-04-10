@@ -17,12 +17,10 @@
 
 usage_help () {
     echo "
--- TEXcellent -- v0.1 -- 
+-- TEXcellent -- v0.2 -- 
     
 Usage: 
-
-    No flags: Creates a directory with a latex document with a basic template
-    
+    texcellent <file>                   Creates a directory with a latex document with a basic template
     texcellent                          will show the same as -h. Arguments are required
     texcellent -h                       shows this this info
     texcellent -o <file>                creates and opens (w/ vim) a latex project folder           (basic template)
@@ -31,37 +29,75 @@ Usage:
 For further info see..."
 }
 
+# Function declarations
+
+# Usage: create_project <project_name>
+function create_project () {
+#    if [[ -z $1 ]]; then
+#        echo Project name required
+#    fi
+
+    if [[ -n $project_name ]]; then
+        echo Project has already been created
+        return 1
+    fi
+
+    local num_of_args=$#
+    
+    # Create different types of projects
+    if [[ num_of_args -eq 0 ]]; then
+        # do somethin
+    elif [[ num_of_args -eq 1 ]]; then
+        # do somethin
+    elif [[ num_of_args -eq 2 ]]; then
+        # do somethin
+    else
+        # do smothin
+    fi
+
+    mkdir $project_name
+    touch "$project_name/$project_name.tex"
+}
+
+create_file_from_template () {
+    touch "./$1"
+    cat "$TEXCELLENT_DIR/templates/$2.tex" >> "./$1.tex"
+}
+
+# Code to run when texcellent is called
 if [[ $# -eq 0 ]]; then
     #echo "Error: no options provided" >&2
     usage_help
     exit 1
 fi
 
-while getopts ":ht:o:c:" opt; do
+flag_count=0
+flag_new_project=0
+flag_new_file=0
+flag_open=0
+template="basic"
+
+# Parse all flags
+while getopts ":hcpfo" opt; do
     case $opt in
-        h)
+        h) # Help (aborts rest of commands)
             usage_help
+            exit 0
+            ;;
+        c) # Count words in file (1 arg -> filename)
+            flag_count=1    
             break
             ;;
-        t)
-            echo Testing $OPTARG
-            shift
+        p) # New project (1 arg -> project_name)
+            #project_name=$OPTARG
+            flag_new_project=1
+            #create_project $OPTARG
             ;;
-        o)
-            filename="$OPTARG.tex"
-            template="basic.tex"
-            echo Creating $filename
-            mkdir $OPTARG
-            cd $OPTARG
-            touch $filename
-            cat "$TEXCELLENT_DIR/templates/$template" >> "./$filename"
-            vim $filename
-            break
+        f)
+            flag_new_file=1
             ;;
-        c)
-            echo -n Wordcount: 
-            detex $OPTARG | wc -w | xargs
-            break
+        o) # Open project (no args, end of command)
+            flag_open=1
             ;;
         \?)
             echo Invalid option: -$OPTARG >&2
@@ -69,6 +105,41 @@ while getopts ":ht:o:c:" opt; do
     esac
 done
 
-#echo arg1 $1
+# If there were flags/options then shift
+if [[ $1 == -* ]]; then
+    shift
+fi
 
+# Update template if given
+if [[ $# -ge 2 ]]; then
+    template=$2
+fi
 
+# Count words in file and nothing else
+if [ $flag_count -ne 0 ]; then
+    echo -n "Wordcount: "
+    detex $1 | wc -w | xargs
+    exit 0
+fi
+
+# Create a new project / file
+if [ $flag_new_project -ne 0 ]; then 
+    echo Creating $1 project
+    mkdir $1
+    file_path="./$1/$1.tex"
+elif [ $flag_new_file -ne 0 ]; then
+    echo Creating $1.tex file
+    file_path="./$1.tex"
+fi
+
+if (( ${+file_path} )); then
+    touch $file_path
+    cat "$TEXCELLENT_DIR/templates/$template.tex" >> $file_path
+fi
+
+# Open project if flag and path is set
+if [ $flag_open -ne 0 ]; then
+    (( ${+file_path} )) && vim $file_path || vim $1
+fi
+
+# Textify latex command
