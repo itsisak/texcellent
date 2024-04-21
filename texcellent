@@ -126,15 +126,17 @@ fi
 if [ $flag_new_project -ne 0 ]; then 
     echo Creating $1 project
     mkdir $1
-    file_path="./$1/$1.tex"
+    file_path="./$1"
 elif [ $flag_new_file -ne 0 ]; then
     echo Creating $1.tex file
-    file_path="./$1.tex"
+    file_path="."
 fi
 
 if (( ${+file_path} )); then
-    touch $file_path
-    cat "$TEXCELLENT_DIR/templates/$template.tex" >> $file_path
+    touch "$file_path/$1.tex"
+    cat "$TEXCELLENT_DIR/templates/$template.tex" >> "$file_path/$1.tex"
+    touch "$file_path/.vimrc"
+    cat "$TEXCELLENT_DIR/tex-vimrc" >> "$file_path/.vimrc"
 fi
 
 # Open project if flag and path is set
@@ -142,4 +144,4 @@ if [ $flag_open -ne 0 ]; then
     (( ${+file_path} )) && vim $file_path || vim $1
 fi
 
-# Textify latex command
+# Todo: Textify latex command
