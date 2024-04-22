@@ -65,83 +65,76 @@ create_file_from_template () {
 }
 
 # Code to run when texcellent is called
-if [[ $# -eq 0 ]]; then
-    #echo "Error: no options provided" >&2
-    usage_help
-    exit 1
-fi
+function tx () {
+ 
+    if [[ $# -eq 0 ]]; then usage_help; exit 1; fi
 
-flag_count=0
-flag_new_project=0
-flag_new_file=0
-flag_open=0
-template="basic"
+    flag_count=0
+    flag_new_project=0
+    flag_new_file=0
+    flag_open=0
+    template="basic"
 
-# Parse all flags
-while getopts ":hcpfo" opt; do
-    case $opt in
-        h) # Help (aborts rest of commands)
-            usage_help
-            exit 0
-            ;;
-        c) # Count words in file (1 arg -> filename)
-            flag_count=1    
-            break
-            ;;
-        p) # New project (1 arg -> project_name)
-            #project_name=$OPTARG
-            flag_new_project=1
-            #create_project $OPTARG
-            ;;
-        f)
-            flag_new_file=1
-            ;;
-        o) # Open project (no args, end of command)
-            flag_open=1
-            ;;
-        \?)
-            echo Invalid option: -$OPTARG >&2
-            ;;
-    esac
-done
+    # Parse all flags
+    while getopts ":hcpfo" opt; do
+        case $opt in
+            h) # Help (aborts rest of commands)
+                usage_help
+                exit 0
+                ;;
+            c) # Count words in file (1 arg -> filename)
+                flag_count=1    
+                break
+                ;;
+            p) # New project (1 arg -> project_name)
+                #project_name=$OPTARG
+                flag_new_project=1
+                #create_project $OPTARG
+                ;;
+            f)
+                flag_new_file=1
+                ;;
+            o) # Open project (no args, end of command)
+                flag_open=1
+                ;;
+            \?)
+                echo Invalid option: -$OPTARG >&2
+                ;;
+        esac
+    done
 
-# If there were flags/options then shift
-if [[ $1 == -* ]]; then
-    shift
-fi
+    # If there were flags/options then shift
+    if [[ $1 == -* ]]; then shift; fi
 
-# Update template if given
-if [[ $# -ge 2 ]]; then
-    template=$2
-fi
+    # Update template if given
+    if [[ $# -ge 2 ]]; then template=$2; fi
 
-# Count words in file and nothing else
-if [ $flag_count -ne 0 ]; then
-    echo -n "Wordcount: "
-    detex $1 | wc -w | xargs
-    exit 0
-fi
+    # Count words in file and nothing else
+    if [ $flag_count -ne 0 ]; then
+        echo -n "Wordcount: "
+        detex $1 | wc -w | xargs
+        exit 0
+    fi
 
-# Create a new project / file
-if [ $flag_new_project -ne 0 ]; then 
-    echo Creating $1 project
-    mkdir $1
-    file_path="./$1"
-elif [ $flag_new_file -ne 0 ]; then
-    echo Creating $1.tex file
-    file_path="."
-fi
+    # Create a new project / file
+    if [ $flag_new_project -ne 0 ]; then 
+        echo Creating $1 project
+        mkdir $1
+        file_path="./$1"
+    elif [ $flag_new_file -ne 0 ]; then
+        echo Creating $1.tex file
+        file_path="."
+    fi
 
-if (( ${+file_path} )); then
-    touch "$file_path/$1.tex"
-    cat "$TEXCELLENT_DIR/templates/$template.tex" >> "$file_path/$1.tex"
-    touch "$file_path/.vimrc"
-    cat "$TEXCELLENT_DIR/tex-vimrc" >> "$file_path/.vimrc"
-fi
+    if (( ${+file_path} )); then
+        touch "$file_path/$1.tex"
+        cat "$TEXCELLENT_DIR/templates/$template.tex" >> "$file_path/$1.tex"
+        touch "$file_path/.vimrc"
+        cat "$TEXCELLENT_DIR/tex-vimrc" >> "$file_path/.vimrc"
+    fi
 
-# Open project if flag and path is set
-if [ $flag_open -ne 0 ]; then
-    (( ${+file_path} )) && vim $file_path || vim $1
-fi
+    # Open project if flag and path is set
+    if [ $flag_open -ne 0 ]; then (( ${+file_path} )) && vim $file_path || vim $1; fi
 
+}
 # Todo: Textify latex command
