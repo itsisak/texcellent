@@ -29,44 +29,7 @@ Usage:
 For further info see..."
 }
 
-# Function declarations
-
-# Usage: create_project <project_name>
-function create_project () {
-#    if [[ -z $1 ]]; then
-#        echo Project name required
-#    fi
-
-    if [[ -n $project_name ]]; then
-        echo Project has already been created
-        return 1
-    fi
-
-    local num_of_args=$#
-    
-    # Create different types of projects
-    if [[ num_of_args -eq 0 ]]; then
-        # do somethin
-    elif [[ num_of_args -eq 1 ]]; then
-        # do somethin
-    elif [[ num_of_args -eq 2 ]]; then
-        # do somethin
-    else
-        # do smothin
-    fi
-
-    mkdir $project_name
-    touch "$project_name/$project_name.tex"
-}
-
-create_file_from_template () {
-    touch "./$1"
-    cat "$TEXCELLENT_DIR/templates/$2.tex" >> "./$1.tex"
-}
-
-# Code to run when texcellent is called
-function tx () {
- 
+function texcellent () {
     if [[ $# -eq 0 ]]; then usage_help; exit 1; fi
 
     flag_count=0
@@ -80,16 +43,14 @@ function tx () {
         case $opt in
             h) # Help (aborts rest of commands)
                 usage_help
-                exit 0
+                return 0
                 ;;
             c) # Count words in file (1 arg -> filename)
                 flag_count=1    
                 break
                 ;;
             p) # New project (1 arg -> project_name)
-                #project_name=$OPTARG
                 flag_new_project=1
-                #create_project $OPTARG
                 ;;
             f)
                 flag_new_file=1
@@ -113,7 +74,7 @@ function tx () {
     if [ $flag_count -ne 0 ]; then
         echo -n "Wordcount: "
         detex $1 | wc -w | xargs
-        exit 0
+        return 0
     fi
 
     # Create a new project / file
@@ -137,4 +98,9 @@ function tx () {
     if [ $flag_open -ne 0 ]; then (( ${+file_path} )) && vim $file_path || vim $1; fi
 
 }
+
 # Todo: Textify latex command
+
+tx () { texcellent "$@" }
+
+
