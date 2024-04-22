@@ -70,11 +70,24 @@ function texcellent () {
     # Update template if given
     if [[ $# -ge 2 ]]; then template=$2; fi
 
-    # Count words in file and nothing else
+    # Count words in directory / file
     if [ $flag_count -ne 0 ]; then
-        echo -n "Wordcount: "
-        detex $1 | wc -w | xargs
-        return 0
+        if [[ -d $1 && -n $1 ]]; then 
+            tot_count=0
+            printf "%-30s   %5s\n" "FILENAME" "WC"
+            for file in $1/**/*.tex(.); do
+                file_count=$(detex "$file" | wc -w | tr -d ' ')
+                printf "%-30s | %5d\n" ${file:0:30} $file_count
+                ((tot_count += $file_count))
+            done
+            printf "%-30s | %5d\n" "TOTAL" $tot_count
+            return 0
+        elif [[ -s $1 && -n $1 ]]; then
+            echo "Wordcount:" $(detex "$1" | wc -w | tr -d ' ')
+            return 0
+        fi
+        echo "Error: Not a valid directory or file"
+        return 1
     fi
 
     # Create a new project / file
