@@ -132,18 +132,26 @@ function texcellent () {
         
     # Create a new project / file
     if [ $flag_new_project -ne 0 ]; then 
-        mkdir $1
-        file_path="./$1"
+        if ! check_command "cp"; then return 1; fi
+        cp -a "$TEXCELLENT_DIR/templates/projects/$template" "./$1"
     elif [ $flag_new_file -ne 0 ]; then
-        file_path="."
+        if ! check_command "cp"; then return 1; fi
+        cp "$TEXCELLENT_DIR/templates/files/$template.tex" "$1.tex"
+        cp "$TEXCELLENT_DIR/utils/tex-vimrc" ".vimrc"
+        #touch "./$1.tex" 
+        #cat "$TEXCELLENT_DIR/templates/files/$template.tex" >> "./$1.tex"
+        #touch "./.vimrc"
+        #cat "TEXCELLENT_DIR/utils/text-vimrc" >> "./.vimrc"
     fi
 
-    if (( ${+file_path} )); then
-        touch "$file_path/$1.tex"
-        cat "$TEXCELLENT_DIR/templates/$template.tex" >> "$file_path/$1.tex"
-        touch "$file_path/.vimrc"
-        cat "$TEXCELLENT_DIR/utils/tex-vimrc" >> "$file_path/.vimrc"
-    fi
+        #file_path="./$1"
+        #file_path="."
+    #if (( ${+file_path} )); then
+        #touch "$file_path/$1.tex"
+        #cat "$TEXCELLENT_DIR/templates/$template.tex" >> "$file_path/$1.tex"
+        #touch "$file_path/.vimrc"
+        #cat "$TEXCELLENT_DIR/utils/tex-vimrc" >> "$file_path/.vimrc"
+    #fi
 
     # Open project if flag and path is set
     if [ $flag_open -ne 0 ]; then 
