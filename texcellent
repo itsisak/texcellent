@@ -83,6 +83,7 @@ function texcellent () {
 
     # Update template if given
     if [[ $# -ge 2 ]]; then template=$2; fi
+    # Remove this?
 
     # Count words in directory / file
     if [ $flag_count -ne 0 ]; then
@@ -104,6 +105,7 @@ function texcellent () {
             echo "Wordcount:" $(detex "$1" | wc -w | tr -d ' ')
             return 0
         fi
+
         echo "Error: Not a valid directory or file"
         return 1
     fi
@@ -128,7 +130,24 @@ function texcellent () {
 
     # TODO: Add template from file / project
     
-    # TODO: Add output function
+    # TODO: Improve this
+    # Much space in txt file ??
+    if [ $flag_output -ne 0 ]; then
+        if ! check_command "detex"; then return 1; fi
+        output_file="out.txt"
+        if [[ $# -ge 2 && -n $2 ]]; then output_file=$2; fi
+        if [[ -d $1 && -n $1 ]]; then  
+            echo "DIR"
+            return 0
+        elif [[ -s $1 && -n $1 ]]; then
+            echo "FILE"
+            detex $1 >> $output_file
+            return 0
+        fi
+
+        echo "Error: Not a valid directory or file"
+        return 1
+    fi
         
     # Create a new project / file
     if [ $flag_new_project -ne 0 ]; then 
