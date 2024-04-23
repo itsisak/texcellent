@@ -15,4 +15,6 @@ export TEXCELLENT_DIR="$HOME/.texcellent"
 
 ## Usage
 
+The program is available as either `tx` or `texcellent`
+
 run `tx -h`
