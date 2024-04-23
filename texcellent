@@ -18,17 +18,29 @@
 # TODO: Update usage guide
 source $TEXCELLENT_DIR/utils/usage 
 
+function check_command () {
+    if ! command -v "$1" &> /dev/null; then
+        echo "Missing dependency: $1"
+        return 1
+    fi
+    return 0
+}
+
+tx () { texcellent "$@" }
 function texcellent () {
-    if [[ $# -eq 0 ]]; then usage_help; exit 1; fi
+    if [[ $# -eq 0 ]]; then usage_help; return 1; fi
 
     flag_count=0
     flag_new_project=0
     flag_new_file=0
     flag_open=0
+    flag_list=0
+    flag_new_template=0
+    flag_output=0
     template="basic"
 
     # Parse all flags
-    while getopts ":hcpfo" opt; do
+    while getopts ":hcpfolLTO" opt; do
         case $opt in
             h) # Help (aborts rest of commands)
                 usage_help
@@ -41,11 +53,25 @@ function texcellent () {
             p) # New project (1 arg -> project_name)
                 flag_new_project=1
                 ;;
-            f)
+            f) # New file (1 arg -> file_name)
                 flag_new_file=1
                 ;;
             o) # Open project (no args, end of command)
                 flag_open=1
+                ;;
+            l) # List all templates
+                flag_list=1
+                ;;
+            L) # List contents of all templates
+                flag_list_long=1
+                ;;
+            # TODO
+            T) # Add new template from file/directory
+                flag_new_template=1
+                ;;
+            # TODO: 
+            O) # Output content as text
+                flag_output=1
                 ;;
             \?)
                 echo Invalid option: -$OPTARG >&2
@@ -61,6 +87,10 @@ function texcellent () {
 
     # Count words in directory / file
     if [ $flag_count -ne 0 ]; then
+        if ! check_command "detex"; then return 1; fi
+        if ! check_command "wc"; then return 1; fi
+        if ! check_command "tr"; then return 1; fi
+
         if [[ -d $1 && -n $1 ]]; then 
             tot_count=0
             printf "%-30s   %5s\n" "FILENAME" "WC"
@@ -79,6 +109,28 @@ function texcellent () {
         return 1
     fi
 
+    # List all templates
+    if [ $flag_list -ne 0 ]; then
+        echo "Templates: "
+        for template in $TEXCELLENT_DIR/templates/*; do
+            echo " - " ${$(basename $template)%.*} # Print only filename and remove file extension
+        done
+        echo "Usage: \n tx -p <project_name> <template>\n tx -f <file_name> <template>"
+        return 0
+    fi
+
+    # TODO: Custom logic without tree
+    # List all template contents
+    if [ $flag_list_long -ne 0 ]; then
+        if ! check_command "tree"; then return 1; fi
+        tree --prune $TEXCELLENT_DIR/templates
+        return 0
+    fi
+
+    # TODO: Add template from file / project
+    
+    # TODO: Add output function
+        
     # Create a new project / file
     if [ $flag_new_project -ne 0 ]; then 
         echo Creating $1 project
@@ -102,9 +154,4 @@ function texcellent () {
     fi
 
 }
-
-# Todo: Textify latex command
-
-tx () { texcellent "$@" }
-
 
