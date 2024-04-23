@@ -1,0 +1,14 @@
+#!/bin/zsh
+
+function usage_help () {
+    echo "-- TEXcellent -- v0.2 -- 
+Usage: 
+    texcellent <file>                   Creates a directory with a latex document with a basic template
+    texcellent                          will show the same as -h. Arguments are required
+    texcellent -h                       shows this this info
+    texcellent -o <file>                creates and opens (w/ vim) a latex project folder           (basic template)
+    texcellent -c <file>                counts words in said file
+
+For further info see..."
+}
+
