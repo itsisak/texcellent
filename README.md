@@ -4,7 +4,7 @@ CLI for managing LaTeX projects
 
 ## Setup
 
-clone this repo and add the following to `.zshrc`
+clone this repo and add the following to `.zshrc`. Remember to update path to `TEXCELLENT_DIR` based on where you put it and its name.
 
 ```zsh
 
