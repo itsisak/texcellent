@@ -11,7 +11,7 @@ else
     echo "export TEXCELLENT_DIR='$HOME/.texcellent'" >> "$HOME/.zshrc"
 fi
 
-cat "$HOME/.texcellent/tx" > "$HOME/bin/tx" || {
+cat "$HOME/.texcellent/texcellent.sh" > "$HOME/bin/tx" || {
     echo "Install failed"; exit 1 
 }
 
