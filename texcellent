@@ -1,149 +1,108 @@
 #!/bin/zsh
-##########################################################################################
-# 
-# ████████╗███████╗██╗  ██╗ ██████╗███████╗██╗     ██╗     ███████╗███╗   ██╗████████╗
-# ╚══██╔══╝██╔════╝╚██╗██╔╝██╔════╝██╔════╝██║     ██║     ██╔════╝████╗  ██║╚══██╔══╝
-#   ██║   █████╗   ╚███╔╝ ██║     █████╗  ██║     ██║     █████╗  ██╔██╗ ██║   ██║   
-#   ██║   ██╔══╝   ██╔██╗ ██║     ██╔══╝  ██║     ██║     ██╔══╝  ██║╚██╗██║   ██║   
-#   ██║   ███████╗██╔╝ ██╗╚██████╗███████╗███████╗███████╗███████╗██║ ╚████║   ██║   
-#   ╚═╝   ╚══════╝╚═╝  ╚═╝ ╚═════╝╚══════╝╚══════╝╚══════╝╚══════╝╚═╝  ╚═══╝   ╚═╝   
-#
-##########################################################################################
-#
-# TEXcellent is a custom program containing;
-# - A CLI for creating new LaTeX projects from custom templates
-# - Defining custom macros
-#
 
-# TODO: Update usage guide
+err () { print "\e[31mERROR:\e[0m $1"}
+warn () { print "\e[33mWARNING:\e[0m $1"}
+info () { print "TEXcellent: $1" }
 
-check_command () {
-    if ! command -v "$1" &> /dev/null; then
-        echo "Missing dependency: $1"
-        return 1
-    fi
-    return 0
-}
+# check_command ???
 
-# TODO: List info of project file: tx <file>
+count () {
+    file_path="."
+    tot_count=0
+    if [[ -n $1 ]]; then file_path="$1"; fi
+    if [[ -v flag_all ]]; then echo ALL; fi
 
-#tx () { texcellent "$@" }
-texcellent () {
-    if [[ $# -eq 0 ]]; then \. $TEXCELLENT_DIR/utils/usage; return 1; fi
-
-    flag_count=0
-    flag_new_project=0
-    flag_new_file=0
-    flag_open=0
-    flag_list=0
-    flag_list_long=0
-    flag_new_template=0
-    flag_output=0
-    template="basic"
-
-    # Parse all flags
-    while getopts ":hclLTpfOo" opt; do
-        case $opt in
-            h) usage_help; return 0;;
-            c) flag_count=1; break;;
-            l) flag_list=1; break;;
-            L) flag_list_long=1; break;;
-            T) flag_new_template=1; break;;
-            p) flag_new_project=1;;
-            f) flag_new_file=1;;
-            O) flag_output=1;;
-            o) flag_open=1;;
-            \?) echo Invalid option: -$OPTARG >&2;;
-        esac
-    done
-
-    # If there were flags/options then shift
-    if [[ $1 == -* ]]; then shift; fi
-
-    # Update template if given
-    if [[ $# -ge 2 ]]; then template=$2; fi
-    # Remove this?
-
-    # Count words in directory / file
-    # TODO: Option to exclude main.tex
-    # TODO: pdftotxt ?
-    if [ $flag_count -ne 0 ]; then
-        if ! check_command "detex"; then return 1; fi
-        if ! check_command "wc"; then return 1; fi
-        if ! check_command "tr"; then return 1; fi
-
-        if [[ -d $1 && -n $1 ]]; then 
-            tot_count=0
-            printf "%-30s   %5s\n" "FILENAME" "WC"
-            for file in $1/**/*.tex(.); do
-                file_count=$(detex "$file" | wc -w | tr -d ' ')
-                printf "%-30s | %5d\n" ${file:0:30} $file_count
-                ((tot_count += $file_count))
-            done
-            printf "%-30s | %5d\n" "TOTAL" $tot_count
-            return 0
-        elif [[ -s $1 && -n $1 ]]; then
-            echo "Wordcount:" $(detex "$1" | wc -w | tr -d ' ')
-            return 0
-        fi
-
-        echo "Error: Not a valid directory or file"
-        return 1
-    fi
-
-    # List all templates
-    if [ $flag_list -ne 0 ]; then
-        echo "Templates: "
-        for template in $TEXCELLENT_DIR/templates/*; do
-            echo " - " ${$(basename $template)%.*} # Print only filename and remove file extension
+    if [[ -d $file_path ]]; then
+        printf "%-30s   %5s\n" "FILENAME" "WC"
+        for file in $file_path/**/*.tex(.); do
+            file_count=$(detex "$file" | wc -w | tr -d ' ')
+            ((tot_count += $file_count))
+            printf "%-30s | %5d\n" ${file:0:30} $file_count
         done
-        echo "Usage: \n tx -p <project_name> <template>\n tx -f <file_name> <template>"
-        return 0
+        printf "%-30s | %5d\n" "TOTAL" $tot_count
+        exit 0
+    elif [[ -f $file_path ]]; then
+        echo "Wordcount: " $(detex "$file_path" | wc -w | tr -d ' ')
+        exit 0
     fi
-
-    # TODO: Custom logic without tree
-    # List all template contents
-    if [ $flag_list_long -ne 0 ]; then
-        if ! check_command "tree"; then return 1; fi
-        tree --prune --no-report $TEXCELLENT_DIR/templates
-        return 0
-    fi
-
-    # TODO: Add template from file / project
-    
-    # TODO: Improve this
-    # Much space in txt file ??
-    if [ $flag_output -ne 0 ]; then
-        if ! check_command "detex"; then return 1; fi
-        output_file="out.txt"
-        if [[ $# -ge 2 && -n $2 ]]; then output_file=$2; fi
-        if [[ -d $1 && -n $1 ]]; then  
-            echo "DIR currently not working"
-        elif [[ -s $1 && -n $1 ]]; then
-            echo "FILE"
-            detex $1 >> $output_file
-            file_path=$output_file
-        else
-            echo "Error: Not a valid directory or file"
-        fi
-    fi
-        
-    # Create a new project / file
-    if [ $flag_new_project -ne 0 ]; then 
-        if ! check_command "cp"; then return 1; fi
-        cp -a "$TEXCELLENT_DIR/templates/projects/$template" "./$1"
-        file_path="./$1"
-    elif [ $flag_new_file -ne 0 ]; then
-        if ! check_command "cp"; then return 1; fi
-        cp "$TEXCELLENT_DIR/templates/files/$template.tex" "$1.tex"
-        cp "$TEXCELLENT_DIR/utils/tex-vimrc" ".vimrc"
-        file_path="$1.tex"
-    fi
-
-    # Open project if flag and path is set
-    if [ $flag_open -ne 0 ]; then 
-        (( ${+file_path} )) && vim $file_path || vim $1
-    fi
-
+    err "Not a valid directory or file"
+    exit 1
 }
+
+list() {
+    if [[ ! -v flag_project ]]; then 
+        echo "Single files:" 
+        for template in $TEXCELLENT_DIR/templates/files/*; do
+            echo " - " ${$(basename $template)%.*}
+        done
+    fi
+    if [[ ! -v flag_file ]]; then 
+        echo "Projects:"
+        for template in $TEXCELLENT_DIR/templates/projects/*; do
+            echo " - " $(basename $template)
+        done
+    fi
+    # What happens if none return true
+}
+
+# Better error handling
+# - if cp does not work
+# - do not open if ^
+new () {
+    template="basic"
+    if [[ -n $2 ]]; then template="$2"; fi
+    if [[ -v flag_project ]]; then 
+        cp -a "$TEXCELLENT_DIR/templates/projects/$template" "./$1"
+        cp "$TEXCELLENT_DIR/utils/tex-vimrc" "./$1/.vimrc"
+        if [[ -v flag_open ]]; then open "./$1"; fi
+    else
+        cp -a "$TEXCELLENT_DIR/templates/files/$template.tex" "./$1.tex"
+        if [[ -v flag_open ]]; then open "./$1.tex"; fi
+    fi
+}
+
+# TODO: Not tested or finished
+output () {
+    echo "output"
+    output_file="out.txt"
+    if [[ -n $2 ]]; then output_file="$2"; fi
+
+    if [[ -d $output_file ]]; then
+        err "under construction"
+        if [[ -v flag_open ]]; then open $1; fi
+        exit 0
+    elif [[ -f $output_file ]]; then
+        detex $1 >> $output_file
+        if [[ -v flag_open ]]; then open $1; fi
+        exit 0
+    fi
+    err "Not a valid directory or file"
+    exit 1
+}
+
+open () { [[ -d $1 || -f $1 ]] && vim $1 || err "Could not open: $1" }
+
+ARGS=()
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        -h | --help ) \. $TEXCELLENT_DIR/utils/usage; exit 0;;
+        -o | --open ) flag_open=1; shift;;
+        #-a | --all ) flag_all=1; shift;;
+        -f | --file ) flag_file=1; shift;;
+        -p | --project ) flag_project=1; shift;;
+        -* | --* ) err "Unknown option: $1" >&2; exit 1;;
+        * ) ARGS+=("$1"); shift;;
+    esac
+done
+
+set -- "${ARGS[@]}"
+ 
+case "${1}" in 
+    h | help ) \. $TEXCELLENT_DIR/utils/usage; exit 0;;
+    c | count ) count $2;;
+    l | list ) list;;
+    n | new ) new $2 $3;;
+    o | out | output ) output $2;;
+    * ) err "Unknown command: $cmd" >&2; exit 1;;
+esac
 
