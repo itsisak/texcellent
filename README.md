@@ -1,6 +1,6 @@
 # TEXcellent
 
-CLI for managing LaTeX projects
+An *excellent* CLI for managing LaTeX projects
 
 ## Installation
 
