@@ -8,6 +8,7 @@ else
     git clone "https://github.com/itsisak/texcellent.git" "$HOME/.texcellent" || {
     echo "Install failed"; exit 1 
     }
+    echo "export TEXCELLENT_DIR='$HOME/.texcellent'" >> "$HOME/.zshrc"
 fi
 
 cat "$HOME/.texcellent/tx" > "$HOME/bin/tx" || {
