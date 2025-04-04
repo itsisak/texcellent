@@ -2,6 +2,8 @@
 
 An *excellent* CLI for managing LaTeX projects
 
+me testing coolify
+
 ## Installation
 
 ```zsh
